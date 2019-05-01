@@ -49,9 +49,6 @@ $Project
 	$Folder	"Source Files"
 	{
 		$File	"BaseVSShader.cpp"
-
-		// physically based rendering
-		$File	"pbr_dx9.cpp"
 	}
 
 	$Folder	"Header Files"
