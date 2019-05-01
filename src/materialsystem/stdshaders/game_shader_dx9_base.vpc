@@ -49,6 +49,9 @@ $Project
 	$Folder	"Source Files"
 	{
 		$File	"BaseVSShader.cpp"
+
+		// physically based rendering
+		$File	"pbr_dx9.cpp"
 	}
 
 	$Folder	"Header Files"
@@ -67,4 +70,6 @@ $Project
         $Lib	mathlib
         $Lib	shaderlib
     }
+	
+	$Shaders "stdshader_dx9_30.txt"
 }

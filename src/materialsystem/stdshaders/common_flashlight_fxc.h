@@ -10,109 +10,14 @@
 
 #include "common_ps_fxc.h"
 
-// ============================================= >>
-// The flashlight depth filter methods, explained:
-// MODE 1 - 3x3 Nvidia PCF Box filter.
-// MODE 2 - Frakenstein's Monster hybrid filter. (Poisson and Gaussian)
-// MODE 3 - 5x5 Nvidia Gaussian Blur filter. (BEST AND LOWEST AMMOUNT OF GAY)
-// MODE 4 - **THE DREADED GRAIN. KEEP AWAY.**
-// ============================================= >>
-
-// WELCOME TO THE GRAHAM DIANATY PREPROCESSOR STATEMENT IMPORIUM!
-#if !defined(PROJTEX_DEPTHFILTER_MODE)
-#define PROJTEX_DEPTHFILTER_MODE 3 // (ASSUMES YOU WANT 5x5 GAUSS IF YOU DON'T SAY OTHERWISE)
-#endif
 #define DEPHTEX_RES 4096.0f // Depth texture resolution. ALWAYS keep this even with what you're using in-game. - Graham
 
-#if defined(SHADER_MODEL_PS_2_B)
-// if your PC is dogshit somehow, always ram DoFlashlightShadow through, don't ask twice.
-// yackity yak don't talk back - Graham
-	#if (PROJTEX_DEPTHFILTER_MODE == 1) && (PROJTEX_DEPTHFILTER_MODE == 2) && (PROJTEX_DEPTHFILTER_MODE == 3) && (PROJTEX_DEPTHFILTER_MODE == 4)
-		#define PROJTEX_FILTER DoFlashlightShadow( FlashlightDepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, nShadowLevel, vShadowTweaks, bAllowHighQuality );
-	#endif
-#else
-	#if (PROJTEX_DEPTHFILTER_MODE == 1)
-		#define PROJTEX_FILTER DoFallbackFlashlightShadow( FlashlightDepthSampler, vProjCoords );
-	#endif
-	#if (PROJTEX_DEPTHFILTER_MODE == 2)
-		#define PROJTEX_FILTER DoFlashlightShadowHybrid( FlashlightDepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, nShadowLevel, vShadowTweaks, bAllowHighQuality );
-	#endif
-	#if (PROJTEX_DEPTHFILTER_MODE == 3)
-		#define PROJTEX_FILTER DoFlashlightShadowHighQuality(FlashlightDepthSampler, vProjCoords);
-	#endif
-	#if (PROJTEX_DEPTHFILTER_MODE == 4)
-		#define PROJTEX_FILTER DoFlashlightShadow( FlashlightDepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, nShadowLevel, vShadowTweaks, bAllowHighQuality );
-	#endif
-#endif
-
-// ============================================= >>
-// DoFallbackFlashlightShadow, an important function.
-// This function exists exclusively for the models,
-// specifically sm2.0b. As a note, if you have an
-// sm2.0b card, you're a waste of fucking oxygen and
-// need to be fucking killed. Just don't use SM2.0b!
-// Anyway, this thing will use the 4x4 Box Gaussian
-// blur function. It's a little crummy, but it will work.
-//
-// Eventually I want to test for the use of hybrid but
-// because I don't want everyone's PCs fucking killing
-// themselves due to the multiple passes it'll recieve
-// I want to TRY and keep it simple. Let's to 3x3 at first.
-// If this doesn't work out... I guess I'll die.
-//
-// Call it with METHOD 1
-//
-// - Graham
-// ============================================= >>
-float DoFallbackFlashlightShadow(sampler DepthSampler, float3 vProjCoords)
+// Vectorized smoothstep for doing three smoothsteps at once.  Used by uberlight
+float3 smoothstep3(float3 edge0, float3 edge1, float3 OneOverWidth, float3 x)
 {
-	float flShadow = 1.0f;
-
-	flShadow = DoShadowNvidiaPCF3x3Box(DepthSampler, vProjCoords);
-
-	return flShadow;
+	x = saturate((x - edge0) * OneOverWidth);	// Scale, bias and saturate x to the range of zero to one
+	return x * x*(3 - 2 * x);							// Evaluate polynomial
 }
-
-#if defined(SHADER_MODEL_PS_3_0)
-// ============================================= >>
-// DoFlashlightShadowHybrid 
-//
-// an experiment in high quality mixing the depth 
-// texture by taking our gaussian blurred sample 
-// and our poisson sample and mash them together.
-//
-// Call it with  METHOD 2
-// ============================================= >>
-float DoFlashlightShadowHybrid(sampler DepthSampler, sampler RandomRotationSampler, float3 vProjCoords, float2 vScreenPos, int nShadowLevel, float4 vShadowTweaks, bool bAllowHighQuality, bool bForceSimple = false)
-{
-	float flShadow = 1.0f;
-	float flShadow_Gaussian = 1.0f;
-	float flShadow_Poisson = 1.0f;
-
-	flShadow_Gaussian = DoShadowNvidiaPCF5x5Gaussian(DepthSampler, vProjCoords, float2(1.0 / DEPHTEX_RES, 1.0 / DEPHTEX_RES));
-	flShadow_Poisson = DoShadowPoisson16Sample(DepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, vShadowTweaks, true, false);
-
-	flShadow = flShadow_Poisson + flShadow_Gaussian;
-	return flShadow;
-}
-
-// ============================================= >>
-// DoFlashlightShadowHighQuality
-//
-// Does some fancy-shmancy garbage when trying to
-// render. Called by DoFlashlight(), and it uses
-// 5x5 Nvidia PCF Gaussian blur as a filter.
-//
-// Call it with PROJTEX_FILTER_METHOD_2
-// ============================================= >>
-float DoFlashlightShadowHighQuality(sampler DepthSampler, float3 vProjCoords)
-{
-	float flShadow = 1.0f;
-	flShadow = DoShadowNvidiaPCF5x5Gaussian(DepthSampler, vProjCoords, float2(1.0 / DEPHTEX_RES, 1.0 / DEPHTEX_RES));
-	return flShadow;
-}
-#endif
-
 
 // Superellipse soft clipping
 //
@@ -262,36 +167,44 @@ float DoShadowNvidiaCheap( sampler DepthSampler, const float4 shadowMapPos )
 	return dot(vTaps, float4(0.25, 0.25, 0.25, 0.25));
 }
 
-float DoShadowNvidiaPCF3x3Box( sampler DepthSampler, const float4 shadowMapPos )
+float DoShadowNvidiaPCF3x3Gaussian(sampler DepthSampler, const float3 shadowMapPos, const float2 vShadowTweaks)
 {
-	float fTexelEpsilon = 1.0f / DEPHTEX_RES;
+	float fEpsilonX = vShadowTweaks.x;
+	float fTwoEpsilonX = 2.0f * fEpsilonX;
+	float fEpsilonY = vShadowTweaks.y;
+	float fTwoEpsilonY = 2.0f * fEpsilonY;
 
-	float ooW = 1.0f / shadowMapPos.w;								// 1 / w
-	float3 shadowMapCenter_objDepth = shadowMapPos.xyz * ooW;		// Do both projections at once
+	float3 shadowMapCenter_objDepth = shadowMapPos;
 
 	float2 shadowMapCenter = shadowMapCenter_objDepth.xy;			// Center of shadow filter
 	float objDepth = shadowMapCenter_objDepth.z;					// Object depth in shadow space
 
 	float4 vOneTaps;
-	vOneTaps.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTexelEpsilon,  fTexelEpsilon ), objDepth, 1 ) ).x;
-	vOneTaps.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTexelEpsilon,  fTexelEpsilon ), objDepth, 1 ) ).x;
-	vOneTaps.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTexelEpsilon, -fTexelEpsilon ), objDepth, 1 ) ).x;
-	vOneTaps.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTexelEpsilon, -fTexelEpsilon ), objDepth, 1 ) ).x;
-	float flOneTaps = dot( vOneTaps, float4(1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f));
+	vOneTaps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, fTwoEpsilonY), objDepth, 1)).x;
+	vOneTaps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, fTwoEpsilonY), objDepth, 1)).x;
+	vOneTaps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, -fTwoEpsilonY), objDepth, 1)).x;
+	vOneTaps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, -fTwoEpsilonY), objDepth, 1)).x;
+	float flOneTaps = dot(vOneTaps, float4(1.0f / 331.0f, 1.0f / 331.0f, 1.0f / 331.0f, 1.0f / 331.0f));
 
-	float4 vTwoTaps;
-	vTwoTaps.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTexelEpsilon,  0 ), objDepth, 1 ) ).x;
-	vTwoTaps.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTexelEpsilon,  0 ), objDepth, 1 ) ).x;
-	vTwoTaps.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  0, -fTexelEpsilon ), objDepth, 1 ) ).x;
-	vTwoTaps.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  0, -fTexelEpsilon ), objDepth, 1 ) ).x;
-	float flTwoTaps = dot( vTwoTaps, float4(1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f, 1.0f / 9.0f));
+	float4 vSevenTaps;
+	vSevenTaps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, 0), objDepth, 1)).x;
+	vSevenTaps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, 0), objDepth, 1)).x;
+	vSevenTaps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(0, fTwoEpsilonY), objDepth, 1)).x;
+	vSevenTaps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(0, -fTwoEpsilonY), objDepth, 1)).x;
+	float flSevenTaps = dot(vSevenTaps, float4(7.0f / 331.0f, 7.0f / 331.0f, 7.0f / 331.0f, 7.0f / 331.0f));
 
-	float flCenterTap = tex2Dproj( DepthSampler, float4( shadowMapCenter, objDepth, 1 ) ).x * (1.0f / 9.0f);
+	float4 v20Taps;
+	v20Taps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, fEpsilonY), objDepth, 1)).x;
+	v20Taps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, fEpsilonY), objDepth, 1)).x;
+	v20Taps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, -fEpsilonY), objDepth, 1)).x;
+	v20Taps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, -fEpsilonY), objDepth, 1)).x;
+	float fl20Taps = dot(v20Taps, float4(20.0f / 331.0f, 20.0f / 331.0f, 20.0f / 331.0f, 20.0f / 331.0f));
 
-	// Sum all 9 Taps
-	return flOneTaps + flTwoTaps + flCenterTap;
+	float flCenterTap = tex2Dproj(DepthSampler, float4(shadowMapCenter, objDepth, 1)).x * (55.0f / 331.0f);
+
+	// Sum all 25 Taps
+	return flOneTaps + flSevenTaps + fl20Taps + flCenterTap;
 }
-
 
 //
 //	1	4	7	4	1
@@ -300,58 +213,59 @@ float DoShadowNvidiaPCF3x3Box( sampler DepthSampler, const float4 shadowMapPos )
 //	4	20	33	20	4
 //	1	4	7	4	1
 //
-float DoShadowNvidiaPCF5x5Gaussian( sampler DepthSampler, const float4 shadowMapPos )
+float DoShadowNvidiaPCF5x5Gaussian(sampler DepthSampler, const float3 shadowMapPos, const float2 vShadowTweaks)
 {
-	float fEpsilon    = 1.0f / 512.0f;
-	float fTwoEpsilon = 2.0f * fEpsilon;
+	float fEpsilonX = vShadowTweaks.x;
+	float fTwoEpsilonX = 2.0f * fEpsilonX;
+	float fEpsilonY = vShadowTweaks.y;
+	float fTwoEpsilonY = 2.0f * fEpsilonY;
 
-	float ooW = 1.0f / shadowMapPos.w;								// 1 / w
-	float3 shadowMapCenter_objDepth = shadowMapPos.xyz * ooW;		// Do both projections at once
+	float3 shadowMapCenter_objDepth = shadowMapPos;
 
 	float2 shadowMapCenter = shadowMapCenter_objDepth.xy;			// Center of shadow filter
 	float objDepth = shadowMapCenter_objDepth.z;					// Object depth in shadow space
 
 	float4 vOneTaps;
-	vOneTaps.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTwoEpsilon,  fTwoEpsilon ), objDepth, 1 ) ).x;
-	vOneTaps.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTwoEpsilon,  fTwoEpsilon ), objDepth, 1 ) ).x;
-	vOneTaps.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTwoEpsilon, -fTwoEpsilon ), objDepth, 1 ) ).x;
-	vOneTaps.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTwoEpsilon, -fTwoEpsilon ), objDepth, 1 ) ).x;
-	float flOneTaps = dot( vOneTaps, float4(1.0f / 331.0f, 1.0f / 331.0f, 1.0f / 331.0f, 1.0f / 331.0f));
+	vOneTaps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, fTwoEpsilonY), objDepth, 1)).x;
+	vOneTaps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, fTwoEpsilonY), objDepth, 1)).x;
+	vOneTaps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, -fTwoEpsilonY), objDepth, 1)).x;
+	vOneTaps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, -fTwoEpsilonY), objDepth, 1)).x;
+	float flOneTaps = dot(vOneTaps, float4(1.0f / 331.0f, 1.0f / 331.0f, 1.0f / 331.0f, 1.0f / 331.0f));
 
 	float4 vSevenTaps;
-	vSevenTaps.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTwoEpsilon,  0 ), objDepth, 1 ) ).x;
-	vSevenTaps.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTwoEpsilon,  0 ), objDepth, 1 ) ).x;
-	vSevenTaps.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  0, -fTwoEpsilon ), objDepth, 1 ) ).x;
-	vSevenTaps.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  0, -fTwoEpsilon ), objDepth, 1 ) ).x;
-	float flSevenTaps = dot( vSevenTaps, float4( 7.0f / 331.0f, 7.0f / 331.0f, 7.0f / 331.0f, 7.0f / 331.0f ) );
+	vSevenTaps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, 0), objDepth, 1)).x;
+	vSevenTaps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, 0), objDepth, 1)).x;
+	vSevenTaps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(0, fTwoEpsilonY), objDepth, 1)).x;
+	vSevenTaps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(0, -fTwoEpsilonY), objDepth, 1)).x;
+	float flSevenTaps = dot(vSevenTaps, float4(7.0f / 331.0f, 7.0f / 331.0f, 7.0f / 331.0f, 7.0f / 331.0f));
 
 	float4 vFourTapsA, vFourTapsB;
-	vFourTapsA.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTwoEpsilon,  fEpsilon    ), objDepth, 1 ) ).x;
-	vFourTapsA.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fEpsilon,     fTwoEpsilon ), objDepth, 1 ) ).x;
-	vFourTapsA.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fEpsilon,     fTwoEpsilon ), objDepth, 1 ) ).x;
-	vFourTapsA.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTwoEpsilon,  fEpsilon    ), objDepth, 1 ) ).x;
-	vFourTapsB.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fTwoEpsilon, -fEpsilon    ), objDepth, 1 ) ).x;
-	vFourTapsB.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fEpsilon,    -fTwoEpsilon ), objDepth, 1 ) ).x;
-	vFourTapsB.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fEpsilon,    -fTwoEpsilon ), objDepth, 1 ) ).x;
-	vFourTapsB.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fTwoEpsilon, -fEpsilon    ), objDepth, 1 ) ).x;
-	float flFourTapsA = dot( vFourTapsA, float4( 4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f ) );
-	float flFourTapsB = dot( vFourTapsB, float4( 4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f ) );
+	vFourTapsA.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, fEpsilonY), objDepth, 1)).x;
+	vFourTapsA.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, fTwoEpsilonY), objDepth, 1)).x;
+	vFourTapsA.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, fTwoEpsilonY), objDepth, 1)).x;
+	vFourTapsA.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, fEpsilonY), objDepth, 1)).x;
+	vFourTapsB.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fTwoEpsilonX, -fEpsilonY), objDepth, 1)).x;
+	vFourTapsB.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, -fTwoEpsilonY), objDepth, 1)).x;
+	vFourTapsB.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, -fTwoEpsilonY), objDepth, 1)).x;
+	vFourTapsB.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fTwoEpsilonX, -fEpsilonY), objDepth, 1)).x;
+	float flFourTapsA = dot(vFourTapsA, float4(4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f));
+	float flFourTapsB = dot(vFourTapsB, float4(4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f, 4.0f / 331.0f));
 
 	float4 v20Taps;
-	v20Taps.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fEpsilon,  fEpsilon ), objDepth, 1 ) ).x;
-	v20Taps.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fEpsilon,  fEpsilon ), objDepth, 1 ) ).x;
-	v20Taps.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fEpsilon, -fEpsilon ), objDepth, 1 ) ).x;
-	v20Taps.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fEpsilon, -fEpsilon ), objDepth, 1 ) ).x;
-	float fl20Taps = dot( v20Taps, float4(20.0f / 331.0f, 20.0f / 331.0f, 20.0f / 331.0f, 20.0f / 331.0f));
+	v20Taps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, fEpsilonY), objDepth, 1)).x;
+	v20Taps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, fEpsilonY), objDepth, 1)).x;
+	v20Taps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, -fEpsilonY), objDepth, 1)).x;
+	v20Taps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, -fEpsilonY), objDepth, 1)).x;
+	float fl20Taps = dot(v20Taps, float4(20.0f / 331.0f, 20.0f / 331.0f, 20.0f / 331.0f, 20.0f / 331.0f));
 
 	float4 v33Taps;
-	v33Taps.x = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  fEpsilon,  0 ), objDepth, 1 ) ).x;
-	v33Taps.y = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2( -fEpsilon,  0 ), objDepth, 1 ) ).x;
-	v33Taps.z = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  0, -fEpsilon ), objDepth, 1 ) ).x;
-	v33Taps.w = tex2Dproj( DepthSampler, float4( shadowMapCenter + float2(  0, -fEpsilon ), objDepth, 1 ) ).x;
-	float fl33Taps = dot( v33Taps, float4(33.0f / 331.0f, 33.0f / 331.0f, 33.0f / 331.0f, 33.0f / 331.0f));
+	v33Taps.x = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(fEpsilonX, 0), objDepth, 1)).x;
+	v33Taps.y = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(-fEpsilonX, 0), objDepth, 1)).x;
+	v33Taps.z = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(0, fEpsilonY), objDepth, 1)).x;
+	v33Taps.w = tex2Dproj(DepthSampler, float4(shadowMapCenter + float2(0, -fEpsilonY), objDepth, 1)).x;
+	float fl33Taps = dot(v33Taps, float4(33.0f / 331.0f, 33.0f / 331.0f, 33.0f / 331.0f, 33.0f / 331.0f));
 
-	float flCenterTap = tex2Dproj( DepthSampler, float4( shadowMapCenter, objDepth, 1 ) ).x * (55.0f / 331.0f);
+	float flCenterTap = tex2Dproj(DepthSampler, float4(shadowMapCenter, objDepth, 1)).x * (55.0f / 331.0f);
 
 	// Sum all 25 Taps
 	return flOneTaps + flSevenTaps + flFourTapsA + flFourTapsB + fl20Taps + fl33Taps + flCenterTap;
@@ -756,12 +670,8 @@ float DoFlashlightShadow( sampler DepthSampler, sampler RandomRotationSampler, f
 
 #if !defined( _X360 ) //PC
 
-	if( nShadowLevel == NVIDIA_PCF_POISSON )
-		flShadow = DoShadowPoisson16Sample( DepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, vShadowTweaks, bForceSimple, true, false );
-	else if( nShadowLevel == ATI_NOPCF )
-		flShadow = DoShadowPoisson16Sample( DepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, vShadowTweaks, bForceSimple, false, false );
-	else if( nShadowLevel == ATI_NO_PCF_FETCH4 )
-		flShadow = DoShadowPoisson16Sample( DepthSampler, RandomRotationSampler, vProjCoords, vScreenPos, vShadowTweaks, bForceSimple, false, true );
+	// you can roll this to 3x3 but... eh. - Graham
+	flShadow = DoShadowNvidiaPCF5x5Gaussian(DepthSampler, vProjCoords, float2(1.0 / DEPHTEX_RES, 1.0 / DEPHTEX_RES));
 
 	return flShadow;
 #else
@@ -842,7 +752,7 @@ void DoSpecularFlashlight( float3 flashlightPos, float3 worldPos, float4 flashli
 #if (defined(SHADER_MODEL_PS_2_B) || defined(SHADER_MODEL_PS_3_0))
 	if ( bDoShadows )
 	{
-		float flShadow = PROJTEX_FILTER;
+		float flShadow = DoShadowNvidiaPCF5x5Gaussian(FlashlightDepthSampler, vProjCoords, float2(1.0 / DEPHTEX_RES, 1.0 / DEPHTEX_RES));
 		float flAttenuated = lerp( flShadow, 1.0f, vShadowTweaks.y );	// Blend between fully attenuated and not attenuated
 		flShadow = saturate( lerp( flAttenuated, flShadow, fAtten ) );	// Blend between shadow and above, according to light attenuation
 		flashlightColor *= flShadow;									// Shadow term
