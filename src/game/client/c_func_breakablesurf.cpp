@@ -516,13 +516,13 @@ int C_BreakableSurface::DrawModel( int flags )
 
 	// If I'm not broken draw normally
 	if (m_bIsBroken)
-		InstallBrushSurfaceRenderer( this );
+		render->InstallBrushSurfaceRenderer( this );
 
 	// If it's broken, always draw it translucent
 	BaseClass::DrawModel( m_bIsBroken ? flags | STUDIO_TRANSPARENCY : flags );
 
 	// Remove our nonstandard brush surface renderer...
-	InstallBrushSurfaceRenderer( NULL );
+	render->InstallBrushSurfaceRenderer( NULL );
 
 	return 0;
 }

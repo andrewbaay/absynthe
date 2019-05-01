@@ -170,7 +170,6 @@ extern vgui::IInputInternal *g_InputInternal;
 #include "sixense/in_sixense.h"
 #endif
 
-#include "deferred/deferred_shared_common.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
@@ -1091,9 +1090,6 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 	HookHapticMessages(); // Always hook the messages
 #endif
 
-	extern void MountExtraContent();
-	MountExtraContent();
-
 	return true;
 }
 
@@ -1669,8 +1665,6 @@ void CHLClient::ResetStringTablePointers()
 	g_pStringTableClientSideChoreoScenes = NULL;
 	g_pStringTableServerMapCycle = NULL;
 
-	g_pStringTable_LightCookies = NULL;
-
 #ifdef TF_CLIENT_DLL
 	g_pStringTableServerPopFiles = NULL;
 	g_pStringTableServerMapCycleMvM = NULL;
@@ -1900,12 +1894,6 @@ void CHLClient::InstallStringTableCallback( const char *tableName )
 	else if ( !Q_strcasecmp( tableName, "ServerMapCycle" ) )
 	{
 		g_pStringTableServerMapCycle = networkstringtable->FindTable( tableName );
-	}
-	else if ( !Q_strcasecmp( tableName, COOKIE_STRINGTBL_NAME ) )
-	{
-		g_pStringTable_LightCookies = networkstringtable->FindTable( tableName );
-
-		g_pStringTable_LightCookies->SetStringChangedCallback( NULL, OnCookieTableChanged );
 	}
 #ifdef TF_CLIENT_DLL
 	else if ( !Q_strcasecmp( tableName, "ServerPopFiles" ) )

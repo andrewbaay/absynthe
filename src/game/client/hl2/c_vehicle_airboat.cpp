@@ -28,8 +28,6 @@
 #include "vgui_controls/Controls.h"
 #include "vgui/ISurface.h"
 
-#include "deferred/deferred_shared_common.h"
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -512,11 +510,7 @@ void C_PropAirboat::UpdateHeadlight()
 	{
 		if (!m_pHeadlight)
 		{
-			// Turned on the headlight; create it.
-			if ( GetDeferredManager()->IsDeferredRenderingEnabled() )
-				m_pHeadlight = new CHeadlightEffect<CFlashlightEffectDeferred>();
-			else
-				m_pHeadlight = new CHeadlightEffect<CFlashlightEffect>();
+			m_pHeadlight = new CHeadlightEffect<CFlashlightEffect>();
 
 			if (!m_pHeadlight)
 				return;

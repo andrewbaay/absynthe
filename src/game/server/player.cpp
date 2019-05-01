@@ -82,8 +82,6 @@
 #include "weapon_physcannon.h"
 #endif
 
-#include "deferred/deferred_shared_common.h"
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
@@ -676,15 +674,6 @@ static ConVar debug_light_visibility( "debug_light_visibility", "0" );
 //-----------------------------------------------------------------------------
 void CBasePlayer::SetupVisibility( CBaseEntity *pViewEntity, unsigned char *pvs, int pvssize )
 {
-	if ( CDeferredLightGlobal* pLight = GetGlobalLight() )
-	{
-		Vector reverseDir;
-		AngleVectors( pLight->GetAbsAngles(), &reverseDir );
-		engine->AddOriginToPVS( GetAbsOrigin() + reverseDir * -8192 );
-		if ( debug_light_visibility.GetBool() )
-			NDebugOverlay::Cross3D( GetAbsOrigin() + reverseDir * -8192, 48, 255, 0, 0, false, 5.f );
-	}
-
 	// If we have a viewentity, we don't add the player's origin.
 	if ( pViewEntity )
 		return;
