@@ -68,7 +68,7 @@ Vector CHL2MP_Player::GetAttackSpread( CBaseCombatWeapon *pWeapon, CBaseEntity *
 //			fvol - 
 //			force - force sound to play
 //-----------------------------------------------------------------------------
-void CHL2MP_Player::PlayStepSound( Vector &vecOrigin, surfacedata_t *psurface, float fvol, bool force )
+void CHL2MP_Player::PlayStepSound( const Vector &vecOrigin, surfacedata_t *psurface, float fvol, bool force )
 {
 	if ( gpGlobals->maxClients > 1 && !sv_footsteps.GetFloat() )
 		return;
