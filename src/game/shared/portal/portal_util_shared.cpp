@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright Â© 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: 
 //
@@ -152,12 +152,18 @@ Color UTIL_Portal_Color( int iPortal )
 			return Color( 242, 202, 167, 255 );
 
 		case 1:
-			// PORTAL 1
-			return Color( 64, 160, 255, 255 );
-
+#ifdef GAME_SUBSEQUENCE
+			return Color( 45, 220, 255, 255 ); // PORTAL 1
+#else
+			return Color ( 64, 160, 255, 225 ); // PORTAL 1 - BLUE
+#endif
 		case 2:
-			// PORTAL 2
-			return Color( 255, 160, 32, 255 );
+			
+#ifdef GAME_SUBSEQUENCE
+			return Color( 105, 40, 255, 255 ); // PORTAL 2
+#else
+			return Color( 255, 160, 32, 255 ); // PORTAL 2 - ORANGE
+#endif
 	}
 
 	return Color( 255, 255, 255, 255 );
