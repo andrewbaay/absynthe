@@ -18,7 +18,7 @@ $Configuration
 	}
 }
 
-$Project "Client (Portal)"
+$Project "Client (Subsequence)"
 {
 	$Folder	"Source Files"
 	{
