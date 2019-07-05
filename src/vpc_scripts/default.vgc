@@ -13,6 +13,7 @@ $Games
 	"HL2MP"
 	"EPISODIC"
 	"PORTAL"
+	"SUBSEQUENCE"
 }
 
 // Makes the VPC scripts work in the SDK's context
