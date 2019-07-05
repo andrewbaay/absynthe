@@ -19,6 +19,7 @@ $Project "client"
 	"game\client\client_hl2mp.vpc"		[($WIN32||$POSIX) && $HL2MP]
 	"game\client\client_episodic.vpc"	[($WIN32||$POSIX) && $EPISODIC]
 	"game\client\client_portal.vpc"		[($WIN32||$POSIX) && $PORTAL]
+	"game\client\client_subsequence.vpc"	[($WIN32||$POSIX) && $SUBSEQUENCE]
 }
 
 $Project "server"
@@ -26,13 +27,15 @@ $Project "server"
 	"game\server\server_hl2mp.vpc"		[($WIN32||$POSIX) && $HL2MP]
 	"game\server\server_episodic.vpc"	[($WIN32||$POSIX) && $EPISODIC]
 	"game\server\server_portal.vpc"		[($WIN32||$POSIX) && $PORTAL]
+	"game\server\server_subsequence.vpc"	[($WIN32||$POSIX) && $SUBSEQUENCE]
 }
 
 $Project "game_shader_dx9"
 {
 	"materialsystem\stdshaders\game_shader_dx9_hl2mp.vpc"		[$HL2MP]
 	"materialsystem\stdshaders\game_shader_dx9_episodic.vpc"	[$EPISODIC]
-	"materialsystem\stdshaders\game_shader_dx9_portal.vpc"	[$PORTAL]
+	"materialsystem\stdshaders\game_shader_dx9_portal.vpc"		[$PORTAL]
+	"materialsystem\stdshaders\game_shader_dx9_subsequence.vpc"	[$SUBSEQUENCE]
 }
 
 $Project "fgdlib"
