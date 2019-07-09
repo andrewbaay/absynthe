@@ -92,12 +92,10 @@ raytrace/Debug/
 raytrace/Release/
 tier1/Debug/
 tier1/Release/
-Release_mod_HL2CE/
-Debug_mod_HL2CE/
-Release_HL2CE/
-Debug_HL2CE/
-Release_left4deadce/
-Debug_left4deadce/
+
+Release_*/
+Debug_*/
+
 gameui/Debug/
 gameui/Release/
 
