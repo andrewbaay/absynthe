@@ -2,7 +2,7 @@
 # Absynthe for Source
 [![Build status](https://ci.appveyor.com/api/projects/status/xdn01yvakk8q49ek?svg=true)](https://ci.appveyor.com/project/gdianaty/absynthe)
 
-After much procrastination and and two rewrites, here it is. The long-awaited Absynthe for Source. Absynthe's primary goal is to give you (the fantastic Source Engine community) the tools you need to make amazing things. Absynthe is designed so the user can simply drop a couple binaries into their source mod files and be up and running on-the-spot. No time spent compiling Visual Studio solutions, no time spent fighting with custom game binaries. It also supports Visual Studio 2017 (from [Scell555](https://github.com/SCell555)) and features the Keep Away from Fire Project Creator, an internal VPC replacement used by Keep Away from Fire Software.
+After much procrastination and and two rewrites, here it is. The long-awaited Absynthe for Source. Absynthe's primary goal is to give you (the fantastic Source Engine community) the tools you need to make amazing things. Absynthe is designed so the user can simply drop a couple binaries into their source mod files and be up and running on-the-spot. No time spent compiling Visual Studio solutions, no time spent fighting with custom game binaries. It also supports Visual Studio 2019 and features the Keep Away from Fire Project Creator, an internal VPC modification used by Keep Away from Fire Software.
 ## Games
 The following are either planned or already supported game titles.
 ### Games supported:
