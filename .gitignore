@@ -24,16 +24,16 @@ ipch
 *.idb
 *.vcxproj
 *.vcxproj.filters
-*.vcxproj.vpc_crc
+*.vcxproj.kpc_crc
 *.sln
-*.vpc.sentinel
+*.kpc.sentinel
 *.VC.db
 *.VC.opendb
 *.VC.db-*
 
 # OSX/Linux build products
 *.mak
-*.mak.vpc_crc
+*.mak.kpc_crc
 *.xcodeproj/
 obj*/
 !devtools/*.mak
