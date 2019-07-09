@@ -1,0 +1,1 @@
+devtools\bin\kpc.exe /episodic /hl2mp /subseqeunce /portal +game +shaders +everything /mksln superproject.sln
