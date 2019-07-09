@@ -79,6 +79,11 @@ $Project
 	
 	$Folder	"Source Files"
 	{
+		$Folder	"Absynthe"
+		{
+			$File	"$SRCDIR\game\shared\absynthe\ay_filesystem.cpp"
+		}
+
 		$File	"$SRCDIR\game\shared\achievement_saverestore.cpp"
 		$File	"$SRCDIR\game\shared\achievement_saverestore.h"
 		$File	"$SRCDIR\game\shared\achievementmgr.cpp"

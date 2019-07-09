@@ -640,6 +640,9 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	// cache the globals
 	gpGlobals = pGlobals;
 
+	extern void DoAdditonalContentMount();
+	DoAdditonalContentMount();
+
 	g_pSharedChangeInfo = engine->GetSharedEdictChangeInfo();
 	
 	MathLib_Init( 2.2f, 2.2f, 0.0f, 2.0f );

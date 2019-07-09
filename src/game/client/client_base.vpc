@@ -174,7 +174,9 @@ $Project
 	{
 		$Folder	"Absynthe"
 		{
-			$File	"absynthe/ay_banner.cpp"
+			$File	"absynthe\ay_banner.cpp"
+
+			$File	"$SRCDIR\game\shared\absynthe\ay_filesystem.cpp"
 		}
 		
 		$File	"hl2\C_Func_Monitor.cpp"
