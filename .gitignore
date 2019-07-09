@@ -166,5 +166,5 @@ logs/
 steampipe/
 game/*
 
-utils/*/Debug/
-utils/*/Release/
+src/utils/*/Debug/
+src/utils/*/Release/
