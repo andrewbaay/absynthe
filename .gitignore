@@ -26,6 +26,7 @@ ipch
 *.vcxproj.filters
 *.vcxproj.kpc_crc
 *.sln
+*.vpc.sentinel
 *.kpc.sentinel
 *.VC.db
 *.VC.opendb
