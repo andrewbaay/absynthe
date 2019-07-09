@@ -5,7 +5,7 @@
 #include "absynthe/ay_conmsg.h"
 // Copied from VDC and played with by Graham Dianaty
 // Mounts other game's stuff from inside Source SDK 2013 MP
-void DoAdditonalContentMount()
+void MountExternalAssets()
 {
 	KeyValues *pFile = new KeyValues( "gameinfo.txt" );
 #ifndef _WINDOWS

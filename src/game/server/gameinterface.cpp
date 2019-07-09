@@ -640,8 +640,8 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	// cache the globals
 	gpGlobals = pGlobals;
 
-	extern void DoAdditonalContentMount();
-	DoAdditonalContentMount();
+	extern void MountExternalAssets();
+	MountExternalAssets();
 
 	g_pSharedChangeInfo = engine->GetSharedEdictChangeInfo();
 	

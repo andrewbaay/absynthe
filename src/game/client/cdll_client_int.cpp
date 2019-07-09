@@ -966,8 +966,8 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 		return false;
 	}
 
-	extern void DoAdditonalContentMount();
-	DoAdditonalContentMount();
+	extern void MountExternalAssets();
+	MountExternalAssets();
 
 	if ( CommandLine()->FindParm( "-textmode" ) )
 		g_bTextMode = true;
