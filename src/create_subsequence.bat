@@ -1,0 +1,3 @@
+@echo off
+echo CREATING HALF LIFE 2 EPISODE 1
+create_game.bat subsequence game_portal_mod_subsequence

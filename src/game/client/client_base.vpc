@@ -172,6 +172,11 @@ $Project
 		
 	$Folder	"Source Files"
 	{
+		$Folder	"Absynthe"
+		{
+			$File	"absynthe/ay_banner.cpp"
+		}
+		
 		$File	"hl2\C_Func_Monitor.cpp"
 		$File	"geiger.cpp"
 		$File	"history_resource.cpp"
