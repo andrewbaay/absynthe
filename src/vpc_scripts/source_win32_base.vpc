@@ -7,7 +7,7 @@ $Configuration
 {
 	$General
 	{
-		$PlatformToolset "v142" // visual studio 2019 or frick - Graham
+		$PlatformToolset "v141" // visual studio 2019 or frick - Graham
 	}
 
 	$General
