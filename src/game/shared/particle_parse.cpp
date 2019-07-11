@@ -57,27 +57,18 @@ int GetAttachTypeFromString( const char *pszString )
 //-----------------------------------------------------------------------------
 void GetParticleManifest( CUtlVector<CUtlString>& list )
 {
-	// Open the manifest file, and read the particles specified inside it
-	KeyValues *manifest = new KeyValues( PARTICLES_MANIFEST_FILE );
-	if ( manifest->LoadFromFile( filesystem, PARTICLES_MANIFEST_FILE, "GAME" ) )
-	{
-		for ( KeyValues *sub = manifest->GetFirstSubKey(); sub != NULL; sub = sub->GetNextKey() )
-		{
-			if ( !Q_stricmp( sub->GetName(), "file" ) )
-			{
-				list.AddToTail( sub->GetString() );
-				continue;
-			}
+	FileFindHandle_t findHandle; // note: FileFINDHandle
 
-			Warning( "CParticleMgr::Init:  Manifest '%s' with bogus file type '%s', expecting 'file'\n", PARTICLES_MANIFEST_FILE, sub->GetName() );
-		}
-	}
-	else
+	const char *pFilename = filesystem->FindFirstEx("particles\\*.pcf", "GAME", &findHandle);
+	while (pFilename)
 	{
-		Warning( "PARTICLE SYSTEM: Unable to load manifest file '%s'\n", PARTICLES_MANIFEST_FILE );
+		char cParse[256];
+		Q_snprintf(cParse, 256, "particles\\%s", pFilename);
+		list.AddToTail(cParse);
+		pFilename = filesystem->FindNext(findHandle);
 	}
 
-	manifest->deleteThis();
+	filesystem->FindClose(findHandle);
 }
 
 
