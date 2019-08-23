@@ -16,7 +16,7 @@ The following are either planned or already supported game titles.
 - Half-Life 2 **(VALVE)**
 - Half-Life 2: Episode Two **(VALVE)**
 - Team Fortress 2 **([NickNine](https://github.com/NicknineTheEagle/))**
-- Source Engine SDK Example **([Luna Ryuko](https://github.com/LunaRyuko/Hydrant))**
+- Source Engine SDK Example **([Luna Ryuko](https://twitter.com/lunaryuko))**
 - Half-Life: Source **(Graham Dianaty)**
 ## Graphics
 And now, the thing you're all here for, the graphics. Unfortunately, the deferred rendering system is not present in this version of Absynthe, or any version of Absynthe. The deferred rendering system requires things to be changed that I can unfortunately not distribute the code for. However, the upcoming title [Boreal Alyph](https://kaffsoftware.com) will support my deferred rendering system.
